@@ -18,7 +18,7 @@ output:
 # 로지스틱 회귀에 기반한 기계학습을 활용한 매핑 - 일본 중부지방을 대상으로
 
 ## 1. 서론  
-기계학습(Machine Learning)은 오늘날 영상, 의학, 게임 등 다양한 분야에서 주목받고 있다. 기계 학습은 고전적인 알고리즘과는 달리 프로그래머가 프로그램의 조건과 결과를 일일이 연결하지 않는다. 프로그래머는 대신 컴퓨터가 데이터를 어떻게 학습할지 결정한 후 데이터를 학습하여 추세에 반영하도록 유도한다. 다음은 Tom Mitchell이 말한 기계학습의 유명한 정의다. 
+기계학습(Machine Learning)은 오늘날 영상, 의학, 게임 등 다양한 분야에서 주목받고 있다. 기계 학습은 고전적인 알고리즘과는 달리 프로그래머가 프로그램의 조건과 결과를 일일이 연결하지 않는다. 프로그래머는 대신 컴퓨터가 데이터를 어떻게 학습할지 결정한 후 데이터를 학습하여 추세에 반영하도록 유도한다. 다음은 Tom Mitchell이 언급한 기계학습의 유명한 정의다. 
   
 'A computer program is said to learn from experience E with respect to some class of tasks T and performance measure P, if its performance at tasks in T, as measured by P, improves with experience E'  
 '특정 작업 T의 성능이 성능 측정 방식 P에 의해 측정되고 경험 E에 의해 향상된다고 할 때, 컴퓨터 프로그램은 작업 T와 성능 측정 P에 관한 경험 E로부터 학습된다고 할 수 있다'(라가프 발리 · 디판잔 사카, 2017)  
