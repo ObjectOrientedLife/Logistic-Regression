@@ -1,6 +1,6 @@
 ---
 title: "Term_Project"
-author: "Park Changhwi"
+author: "ObjectOrientedLife"
 date: "2017³â 6¿ù 22ÀÏ"
 output:
   html_document:

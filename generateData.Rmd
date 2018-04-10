@@ -1,0 +1,154 @@
+---
+title: "Generate Data"
+author: "ObjectOrientedLife"
+date: "2017년 6월 26일"
+output:
+  html_document:
+    fig_caption: yes
+    highlight: pygments
+    theme: cerulean
+    toc: yes
+  html_notebook:
+    fig_caption: yes
+    highlight: pygments
+    theme: cerulean
+    toc: yes
+---
+
+# 1. 라이브러리
+```{r library, message=FALSE, warning=FALSE}
+require(ggmap) || install.packages("ggmap")
+require(png) || install.packages("png")
+```
+작업에 필요한 라이브러리를 불러온다.  
+
+# 2. 임의의 지도 생성하고 저장하기
+```{r generate_map, message=FALSE, warning=FALSE}
+count <- 1
+number_of_images <- 10 # number of maps and satellite images to generate
+
+while(count < number_of_images + 1)
+{
+  location <- c(lon = runif(1, min = 138, max = 140), lat = runif(1, min = 35, max = 37)) 
+  # randomly generate center of maps, logtitude from 138 to 140, latitude from 35 to 37
+  
+  map_to_save <- get_googlemap(center = location, 
+                      zoom = 11,
+                      maptype = "roadmap",
+                      format = "png8",
+                      style = "&style=feature:all|element:labels|visibility:off&style=feature:road|visibility:off&style=feature:poi|visibility:off&style=feature:transit|visibility:off&style=feature:administrative|visibility:off&style=feature:landscape.man_made|element:geometry.fill|color:0x000000")
+  # generate maps with customized style
+  
+  save_location <- paste("./maps/map", toString(count), ".png", sep = "")
+  ggsave(ggmap(map_to_save), file = save_location)
+  # save maps
+
+  satellite_to_save <- get_googlemap(center = location, 
+                      zoom = 11,
+                      maptype = "satellite",
+                      format = "png8")
+  #generate satellite images
+  
+  save_location <- paste("./maps/satellite", toString(count), ".png", sep = "")
+  ggsave(ggmap(satellite_to_save), file = save_location)
+  # save satellite images
+  
+  test_location <- c(lon = runif(1, min = 138, max = 140), lat = runif(1, min = 35, max = 37)) 
+  
+  test_map_image <- get_googlemap(center = test_location, 
+                        zoom = 11,
+                        maptype = "roadmap",
+                        format = "png8",
+                        style = "&style=feature:all|element:labels|visibility:off&style=feature:road|visibility:off&style=feature:poi|visibility:off&style=feature:transit|visibility:off&style=feature:administrative|visibility:off&style=feature:landscape.man_made|element:geometry.fill|color:0x000000")
+  
+  test_save_location <- paste("./maps/test_map_image", toString(count), ".png", sep = "")
+  ggsave(ggmap(test_map_image), file = test_save_location)
+  
+  test_satellite_image <- get_googlemap(center = test_location,
+                                  zoom = 11,
+                                  maptype = "satellite",
+                                  format = "png8")
+  
+  test_save_location <- paste("./maps/test_satellite_image", toString(count), ".png", sep = "")
+  ggsave(ggmap(test_satellite_image), file = test_save_location)
+  
+  count <- count + 1
+}
+```
+ggmap() 함수와 구글맵 API를 사용하여 maps 폴더에 각각 number_of_images만큼의 훈련을 위한 지도와 위성 이미지, 알고리즘을 시험하기 위한 지도와 위성 이미지를 생성한다(즉 생성되는 이미지는 모두 number_of_images의 네 배이다). 각각의 지도와 위성 이미지는 범위 내의 임의의 지점에서 생성되며, 또 같은 지점에서 생성된 짝이다. 또, 구글 지도를 불러올 때, 인간의 거주 지역과 나머지 지역을 명확히 구분하기 위해 거주 지역은 검은색(0x000000)으로 칠하도록 설정한다.
+
+# 3. 지도에서 임의의 픽셀을 추출하고 취합하여 데이터 파일 생성하기  
+  
+## 1) 학습을 위한 지도와 위성 이미지에서의 픽셀 추출
+```{r generate_data, message=FALSE, warning=FALSE}
+number_of_pixels <- 200
+# number of pixels to extract in one image
+
+map_R <- c() 
+map_G <- c()
+map_B <- c()
+# vectors of RGB data belongs to an arbitrary pixel
+
+satellite_R <- c()
+satellite_G <- c()
+satellite_B <- c()
+# vectors of RGB data belongs to an arbitrary pixel
+
+for(i in 1 : number_of_images)
+{
+  count <- 0
+  
+  map_index <- paste("map", toString(i), ".png", sep = "") # an index for map in which extract pixel
+  satellite_index <- paste("satellite", toString(i), ".png", sep = "") # an index for satellite in which extract pixel
+  
+  target_map <- readPNG(paste("./maps/", map_index, sep = "")) # a map in which extract pixel
+  target_satellite <- readPNG(paste("./maps/", satellite_index, sep = "")) # a satellite image in which extract pixel
+  
+  while(count < number_of_pixels)
+  {
+    x <- sample(500 : 1700, 1)
+    y <- sample(30 : 1250, 1)
+    # select arbitrary pixel among x:(500, 1700) and y:(30, 1250)
+    
+    map_R <- append(map_R, target_map[y, x, ][1])
+    map_G <- append(map_G, target_map[y, x, ][2])
+    map_B <- append(map_B, target_map[y, x, ][3])
+    satellite_R <- append(satellite_R, target_satellite[y, x, ][1])
+    satellite_G <- append(satellite_G, target_satellite[y, x, ][2])
+    satellite_B <- append(satellite_B, target_satellite[y, x, ][3])
+    count <- count + 1
+  }
+}
+
+RGB_df <- data.frame(map_R, map_G, map_B, satellite_R, satellite_G, satellite_B)
+write.csv(RGB_df, file = "./data/rgb_data.csv")
+
+
+```
+각각의 지도와 위성 이미지에서 number_of_pixels만큼의 픽셀을 추출한다. 본 연구에서는 각 지도와 위성 이미지마다 200개의 픽셀을 랜덤하게 추출하였다. 이를 데이터 프레임으로 바꾼 후 rgb_data.csv로 저장한다.  
+
+## 2) 기계학습에 따른 알고리즘을 시험할 위성 이미지에서의 픽셀 추출
+```{r test_satellite, message=FALSE, warning=FALSE}
+
+for(i in 1 : 10)
+{
+  satellite_R <- c()
+  satellite_G <- c()
+  satellite_B <- c()
+  image_to_read <- paste("./maps/test_satellite_image", i, ".png", sep = "")
+  test_satellite_image <- readPNG(image_to_read)
+  for(x in 100 : 340)
+  {
+    for(y in 6 : 250)
+    {
+      satellite_R <- append(satellite_R, test_satellite_image[5 * y, 5 * x, ][1])
+      satellite_G <- append(satellite_G, test_satellite_image[5 * y, 5 * x, ][2])
+      satellite_B <- append(satellite_B, test_satellite_image[5 * y, 5 * x, ][3])
+    }
+  }
+  test_satellite_RGB <- data.frame(satellite_R, satellite_G, satellite_B)
+  save_location <- paste("./data/test_satellite_rgb", toString(i), ".csv", sep = "")
+  write.csv(test_satellite_RGB, file = save_location)
+}
+```
+학습을 마치고 난 후 알고리즘의 성능을 시험할 위성 이미지에서 픽셀을 추출한다. (1)의 추출 과정과는 달리, 랜덤이 아니라 이미지의 좌측 상단부터 우측 하단까지 순서대로 픽셀을 추출하였다. 다만 본래의 지도는 해상도가 높아 모든 픽셀을 추출할 수 없으므로 5의 배수에 해당하는 픽셀들만을 추출하여 test_satellite_rgb.csv로 저장하였다.
